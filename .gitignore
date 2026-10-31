@@ -1,0 +1,18 @@
+# macOS
+.DS_Store
+build/
+.tmp/
+*.log
+
+# Node
+node_modules/
+.npm-cache/
+
+# Generated app assets / build outputs
+app/web/vendor/
+dist/
+assets/AppIcon.iconset/
+
+# Local test leftovers
+/tmp/
+*.tmp

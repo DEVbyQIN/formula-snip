@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<style>html, body { margin: 0; background: transparent; }</style>
+<script>
+(function () {
+  var ALLOWED = ['mathjax-newcm', 'mathjax-modern', 'mathjax-stix2', 'mathjax-pagella', 'mathjax-fira', 'mathjax-tex'];
+  var hashFont = decodeURIComponent((location.hash || '').replace(/^#/, ''));
+  var requested = hashFont || 'mathjax-newcm';
+  var font = ALLOWED.indexOf(requested) >= 0 ? requested : 'mathjax-newcm';
+  window.__FONT__ = font;
+
+  window.MathJax = {
+    loader: { paths: { fonts: './vendor/fonts' } },
+    output: { font: font },
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      macros: {
+        bra: ['\\langle #1|', 1],
+        ket: ['|#1\\rangle', 1],
+        braket: ['\\langle #1|#2\\rangle', 2],
+        abs: ['\\left|#1\\right|', 1],
+        norm: ['\\left\\|#1\\right\\|', 1],
+        degree: '^{\\circ}',
+        dd: '\\mathop{}\\mathrm{d}'
+      }
+    },
+    svg: { fontCache: 'local' },
+    options: {
+      enableMenu: false,
+      enableEnrichment: false,
+      enableSpeech: false,
+      enableBraille: false,
+      enableComplexity: false,
+      enableExplorer: false,
+      menuOptions: {
+        settings: { enrich: false, collapsible: false, speech: false, braille: false, assistiveMml: false }
+      }
+    },
+    startup: {
+      ready: function () {
+        MathJax.startup.defaultReady();
+        parent.postMessage({ type: 'renderer-ready', font: font }, '*');
+      }
+    }
+  };
+})();
+</script>
+<script src="./vendor/mathjax/tex-svg-nofont.js"></script>
+<script src="renderer.js"></script>
+</head>
+<body></body>
+</html>
