@@ -2,6 +2,8 @@
 
 > 独立于 DeepSeek Harness 的 macOS 公式小工具：**LaTeX-suite 风格 snippet 输入 → 可选字体、颜色的透明 PNG**，导出后直接拖进 PowerPoint / Keynote。
 
+**GitHub**：[DEVbyQIN/formula-snip](https://github.com/DEVbyQIN/formula-snip)　·　**下载**：[Releases](https://github.com/DEVbyQIN/formula-snip/releases/latest)
+
 ![FormulaSnip 界面](docs/app-ui.png)
 
 - 完全离线：MathJax 与 6 套公式字体已经打包进 App，不联网、不依赖 TeX，也不需要 DSH。
@@ -11,7 +13,7 @@
 
 ## 安装
 
-1. 打开 `dist/FormulaSnip-1.0.0.dmg`，把 **FormulaSnip.app** 拖进「应用程序」。
+1. 从 [Releases](https://github.com/DEVbyQIN/formula-snip/releases/latest) 下载 `FormulaSnip-1.0.0.dmg`，把 **FormulaSnip.app** 拖进「应用程序」；或者用仓库源码自行构建（见下文）。
 2. 本包为本地 ad-hoc 签名、未公证。若系统提示"无法验证开发者"，在 Finder 里 **右键 → 打开** 一次即可。
 3. 系统要求：macOS 11+。当前包是 Intel（x86_64）构建；Apple Silicon 机器可直接运行（Rosetta），也可以在目标机器上按「自行构建」重新编译。
 
