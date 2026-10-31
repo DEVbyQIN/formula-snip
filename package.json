@@ -11,7 +11,7 @@
     "electron": "electron .",
     "electron:selftest": "electron . --selftest /tmp/formulasnip-electron-selftest",
     "electron:pack": "electron-builder --mac dir",
-    "electron:dmg": "electron-builder --mac dmg zip",
+    "electron:dmg": "scripts/build-electron.sh",
     "electron:win": "electron-builder --win nsis",
     "test:web": "node scripts/web-selftest.mjs",
     "test:native": "dist/FormulaSnip.app/Contents/MacOS/FormulaSnip --selftest /tmp/formulasnip-selftest",

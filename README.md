@@ -70,7 +70,7 @@ npm install                                   # 会安装 electron + electron-bu
 scripts/prepare-vendor.sh app/web/vendor
 npm run electron                              # 本机开发运行
 npm run electron:selftest                     # 自动化自检（截图 + 原生桥）
-scripts/build-electron.sh                     # macOS 包：dist-electron/
+scripts/build-electron.sh                     # macOS：.app + dmg + zip → dist-electron/
 # Windows（需在 Windows 或 GitHub Actions windows-latest 上执行）：
 npm run electron:win                          # NSIS 安装包
 ```
