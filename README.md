@@ -57,7 +57,28 @@
 
 中文写在 `\text{…}` 里，渲染时使用 macOS 系统字体回退（导出图里也是同样的字形）。
 
-## 自行构建
+## Electron 版（Windows 适配的前置工作）
+
+macOS 的正式安装包仍是上面的原生版（Swift + WKWebView，约 26 MB）。为了让 Windows 能用，仓库另外包含一套 **Electron 宿主**：前端 snippet / 渲染 / 导出 / 历史代码完全复用，只替换原生壳。
+
+- 已实现：窗口、菜单、保存对话框、剪贴板、状态文件、`--selftest` 自检；前端通过宿主无关的 `window.formulasnip` 桥工作
+- 已在 macOS 上验证 Electron 版：开发运行、打包后的 `.app` 与 `.dmg` 自检全绿；Windows 的 NSIS 打包配置已写好（`npm run electron:win`），**待 Windows 实机验收**
+- Electron 自带 Chromium，Windows 上不依赖 WebView2；代价是体积大：本次 macOS 构建 `.app` 约 300 MB，ZIP 123 MB / DMG 141 MB，Windows NSIS 预计同量级
+
+```bash
+npm install                                   # 会安装 electron + electron-builder
+scripts/prepare-vendor.sh app/web/vendor
+npm run electron                              # 本机开发运行
+npm run electron:selftest                     # 自动化自检（截图 + 原生桥）
+scripts/build-electron.sh                     # macOS 包：dist-electron/
+# Windows（需在 Windows 或 GitHub Actions windows-latest 上执行）：
+npm run electron:win                          # NSIS 安装包
+```
+
+状态路径：macOS `~/Library/Application Support/FormulaSnip/state.json`，Windows `%APPDATA%\FormulaSnip\state.json`。
+
+
+## 自行构建（macOS 原生版）
 
 需要：macOS + Xcode Command Line Tools（`swiftc`）、Node 20+ 与 npm（**只在准备 MathJax 资源时用到**；运行 App 不需要 Node、TeX 或 DSH）。
 

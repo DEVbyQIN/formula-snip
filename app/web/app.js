@@ -12,9 +12,17 @@
   ];
   var COLOR_PRESETS = ['#111827', '#374151', '#1d4ed8', '#0f766e', '#7c3aed', '#be123c', '#c2410c', '#ffffff'];
   var DEFAULT_TEX = '\\int_{-\\infty}^{\\infty} e^{-x^2}\\,dx = \\sqrt{\\pi}';
+  var DEMO_TEX = '\\int_{-\\infty}^{\\infty} e^{-x^2}\\,dx = \\sqrt{\\pi}';
   var MAX_HISTORY = 80;
   var MAX_LOGS = 200;
   var FONT_IDS = FONTS.map(function (f) { return f.id; });
+
+  // 平台相关文案（Electron / WKWebView 都通过宿主注入 __PLATFORM__）
+  var PLATFORM = '';
+  try { if (typeof window.__PLATFORM__ === 'string') PLATFORM = window.__PLATFORM__; } catch (e) {}
+  var IS_MAC = PLATFORM ? PLATFORM === 'darwin' : /Mac/i.test(navigator.platform || '');
+  var KEY_EXPORT = IS_MAC ? '\u2318E' : 'Ctrl+E';
+  var KEY_COPY = IS_MAC ? '\u2318\u21e7C' : 'Ctrl+Shift+C';
 
   /* ------------------------------------------------------------------ 工具 */
   function pad(n) { return n < 10 ? '0' + n : '' + n; }
@@ -30,7 +38,18 @@
   function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
 
   /* ---------------------------------------------------------------- 原生桥 */
-  var nativeHandler = (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.formulasnip) || null;
+  function detectHostBridge() {
+    try {
+      if (window.formulasnip && typeof window.formulasnip.postMessage === 'function') return window.formulasnip;
+    } catch (e) {}
+    try {
+      if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.formulasnip) {
+        return window.webkit.messageHandlers.formulasnip;
+      }
+    } catch (e) {}
+    return null;
+  }
+  var hostBridge = detectHostBridge();
   var bridgeSeq = 0;
   var bridgePending = {};
   window.__bridgeResult = function (payload) {
@@ -43,11 +62,11 @@
   };
   function callNative(type, payload) {
     return new Promise(function (resolve) {
-      if (!nativeHandler) { resolve({ ok: false, error: 'no-native-bridge' }); return; }
+      if (!hostBridge) { resolve({ ok: false, error: 'no-native-bridge' }); return; }
       var reqId = 'b' + (++bridgeSeq);
       bridgePending[reqId] = { resolve: resolve };
       try {
-        nativeHandler.postMessage(Object.assign({ type: type, reqId: reqId }, payload || {}));
+        hostBridge.postMessage(Object.assign({ type: type, reqId: reqId }, payload || {}));
       } catch (e) {
         resolve({ ok: false, error: String(e) });
       }
@@ -343,7 +362,7 @@
     saveTimer = setTimeout(function () {
       saveTimer = null;
       var json = JSON.stringify(state);
-      if (nativeHandler) {
+      if (hostBridge) {
         callNative('saveState', { json: json }).then(function (r) {
           if (els.saveState) els.saveState.textContent = r && r.ok ? '已保存' : '保存失败';
           setTimeout(function () { if (els.saveState) els.saveState.textContent = ''; }, 1200);
@@ -548,9 +567,15 @@
       if (token !== renderToken) return;
       lastRender = res;
       if (!res.ok) {
-        showPreviewError(res.error || '渲染失败');
-        setStatus('渲染失败：' + (res.error || '未知错误'), true);
-        log('error', '渲染失败：' + (res.error || '未知错误'));
+        var failure = res.error || '未知错误';
+        // 切换字体时会主动拆掉旧渲染器，旧的渲染请求会被拒绝；直接重排即可。
+        if (failure.indexOf('字体已切换') >= 0 || failure.indexOf('渲染器已切换') >= 0) {
+          scheduleRender(true);
+          return;
+        }
+        showPreviewError(failure);
+        setStatus('渲染失败：' + failure, true);
+        log('error', '渲染失败：' + failure);
         return;
       }
       lastRenderedText = state.tex;
@@ -581,7 +606,7 @@
   }
 
   function savePng(dataUrl, filename) {
-    if (nativeHandler) {
+    if (hostBridge) {
       return callNative('savePng', { dataUrl: dataUrl, filename: filename });
     }
     var a = document.createElement('a');
@@ -649,7 +674,7 @@
       if (!res || !res.ok) throw new Error((res && res.error) || '没有可复制的公式');
       var png = await svgToPng(res.svg, { fontPx: state.size, scale: state.exportScale, color: state.color });
       var copied;
-      if (nativeHandler) {
+      if (hostBridge) {
         copied = await callNative('copyPng', { dataUrl: png.dataUrl });
         if (!copied.ok) throw new Error(copied.error || '复制失败');
       } else {
@@ -692,7 +717,7 @@
     if (!state.history.length) {
       var empty = document.createElement('div');
       empty.className = 'empty';
-      empty.textContent = '还没有记录 —— 按 ⌘E 导出或 ⌘⇧C 复制后会自动保存在这里';
+      empty.textContent = '还没有记录 —— 按 ' + KEY_EXPORT + ' 导出或 ' + KEY_COPY + ' 复制后会自动保存在这里';
       body.appendChild(empty);
       return;
     }
@@ -1139,7 +1164,7 @@
       state.history = state.history.filter(function (e) { return e.id !== 'selftest'; });
       add('历史增删', added && state.history.length === beforeCount, '');
 
-      if (nativeHandler) {
+      if (hostBridge) {
         var st = await callNative('saveState', { json: JSON.stringify({ selftest: true, at: Date.now() }), selftest: true });
         add('原生状态保存', st && st.ok, st && st.path ? st.path : JSON.stringify(st));
         if (png) {
@@ -1152,6 +1177,16 @@
     } catch (e) {
       add('自检异常', false, (e && e.stack) || String(e));
     }
+
+    // 自检结束后把界面恢复成干净的演示状态（自检本身不落盘）
+    state.tex = DEMO_TEX;
+    state.font = 'mathjax-newcm';
+    els.tex.value = DEMO_TEX;
+    session = null;
+    applyStateToUI();
+    updateHint();
+    await new Promise(function (resolve) { setTimeout(resolve, 250); });
+    await renderNow();
 
     if (png) {
       addHistory({ id: 'demo1', tex: '\\frac{a}{b} + \\alpha', font: 'mathjax-newcm', color: '#111827', size: 32, mode: 'display', scale: 2, at: Date.now() - 65000, thumb: png.dataUrl, w: png.width, h: png.height });
@@ -1197,6 +1232,8 @@
       rendererHost: $('rendererHost')
     };
 
+    if (els.exportBtn) els.exportBtn.title = '导出透明 PNG（' + KEY_EXPORT + '）';
+    if (els.copyBtn) els.copyBtn.title = '复制 PNG 到剪贴板（' + KEY_COPY + '）';
     buildFontSelect();
     buildSwatches();
     bindEvents();

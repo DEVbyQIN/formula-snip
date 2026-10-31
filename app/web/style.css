@@ -44,7 +44,7 @@ html, body {
   overflow: hidden;
   background: var(--bg);
   color: var(--text);
-  font: 13px/1.45 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", "PingFang SC", sans-serif;
+  font: 13px/1.45 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", "Helvetica Neue", "PingFang SC", "Microsoft YaHei", sans-serif;
   -webkit-font-smoothing: antialiased;
   user-select: none;
 }
@@ -176,7 +176,7 @@ html, body {
   background: transparent;
   color: var(--text);
   padding: 14px 16px;
-  font: 13.5px/1.75 "SF Mono", ui-monospace, Menlo, Monaco, "Cascadia Code", monospace;
+  font: 13.5px/1.75 "SF Mono", ui-monospace, Menlo, Monaco, Consolas, "Cascadia Code", monospace;
   caret-color: var(--accent);
   user-select: text;
   white-space: pre-wrap;
@@ -292,7 +292,7 @@ input[type="color"]::-webkit-color-swatch { border: none; border-radius: 3px; }
   border-radius: 6px;
   background: var(--pane-2);
   color: var(--text);
-  font: 11px/1 "SF Mono", ui-monospace, Menlo, monospace;
+  font: 11px/1 "SF Mono", ui-monospace, Menlo, Consolas, "Cascadia Code", monospace;
   padding: 5px 6px;
   outline: none;
   user-select: text;
@@ -354,7 +354,7 @@ input[type="color"]::-webkit-color-swatch { border: none; border-radius: 3px; }
 .stage-error {
   max-width: 78%;
   color: var(--danger);
-  font: 12px/1.6 "SF Mono", ui-monospace, Menlo, monospace;
+  font: 12px/1.6 "SF Mono", ui-monospace, Menlo, Consolas, "Cascadia Code", monospace;
   text-align: center;
   white-space: pre-wrap;
   user-select: text;

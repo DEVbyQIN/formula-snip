@@ -35,3 +35,10 @@ Only the SVG font data (`svg.js` and `svg/dynamic/*.js`) is bundled.
 - The snippet definitions are adapted from the default snippets of
   [obsidian-latex-suite](https://github.com/artisticat1/obsidian-latex-suite)
   (MIT) and rewritten for this single-formula editor.
+
+
+## Electron desktop build
+
+The Electron-based desktop build bundles Electron 45 / Chromium / Node.js.
+Their license texts ship inside the packaged app (Electron's own `LICENSES.chromium.html`
+and `LICENSE`), and Electron is distributed under the MIT license.
