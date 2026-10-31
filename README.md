@@ -2,7 +2,7 @@
 
 > 独立于 DeepSeek Harness 的 macOS 公式小工具：**LaTeX-suite 风格 snippet 输入 → 可选字体、颜色的透明 PNG**，导出后直接拖进 PowerPoint / Keynote。
 
-**GitHub**：[DEVbyQIN/formula-snip](https://github.com/DEVbyQIN/formula-snip)　·　**下载**：[Releases](https://github.com/DEVbyQIN/formula-snip/releases/latest)
+**GitHub**：[DEVbyQIN/formula-snip](https://github.com/DEVbyQIN/formula-snip)　·　**下载**：[macOS](https://github.com/DEVbyQIN/formula-snip/releases/latest)　·　[Windows 预览](https://github.com/DEVbyQIN/formula-snip/releases/tag/v1.0.0-windows.1)
 
 ![FormulaSnip 界面](docs/app-ui.png)
 
@@ -62,7 +62,8 @@
 macOS 的正式安装包仍是上面的原生版（Swift + WKWebView，约 26 MB）。为了让 Windows 能用，仓库另外包含一套 **Electron 宿主**：前端 snippet / 渲染 / 导出 / 历史代码完全复用，只替换原生壳。
 
 - 已实现：窗口、菜单、保存对话框、剪贴板、状态文件、`--selftest` 自检；前端通过宿主无关的 `window.formulasnip` 桥工作
-- 已在 macOS 上验证 Electron 版：开发运行、打包后的 `.app` 与 `.dmg` 自检全绿；Windows 的 NSIS 打包配置已写好（`npm run electron:win`），**待 Windows 实机验收**
+- 已在 macOS 上验证 Electron 版：开发运行、打包后的 `.app` 与 `.dmg` 自检全绿
+- Windows 安装包已通过 GitHub Actions `windows-latest` 构建：[v1.0.0-windows.1 预览版](https://github.com/DEVbyQIN/formula-snip/releases/tag/v1.0.0-windows.1)（未签名、未实机验收；`npm run electron:win` 也可在 Windows 本机构建）
 - Electron 自带 Chromium，Windows 上不依赖 WebView2；代价是体积大：本次 macOS 构建 `.app` 约 300 MB，ZIP 123 MB / DMG 141 MB，Windows NSIS 预计同量级
 
 ```bash
