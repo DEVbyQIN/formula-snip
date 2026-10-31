@@ -1,0 +1,41 @@
+name: build-windows
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Prepare MathJax and font assets
+        shell: bash
+        run: bash scripts/prepare-vendor.sh app/web/vendor
+
+      - name: Build NSIS installer
+        shell: bash
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+        run: npx electron-builder --win nsis --x64
+
+      - name: Upload installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: FormulaSnip-Windows-x64
+          path: |
+            dist-electron/*.exe
+            dist-electron/*.blockmap
+          if-no-files-found: error

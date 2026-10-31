@@ -31,4 +31,6 @@ done
 cp "$ROOT/node_modules/mathjax/LICENSE" "$DEST/mathjax/LICENSE" 2>/dev/null || true
 
 echo "vendor ready: $DEST"
-du -sh "$DEST"
+if command -v du >/dev/null 2>&1; then
+  du -sh "$DEST"
+fi
