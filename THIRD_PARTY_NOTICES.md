@@ -25,6 +25,8 @@ Apache-2.0 in its package metadata:
 | `@mathjax/mathjax-tex-font` | original MathJax TeX font |
 
 Only the SVG font data (`svg.js` and `svg/dynamic/*.js`) is bundled.
+The `mhchem` TeX extension is bundled together with
+`@mathjax/mathjax-mhchem-font-extension` (Apache-2.0).
 
 ## Notes
 

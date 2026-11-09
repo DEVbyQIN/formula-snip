@@ -42,14 +42,29 @@
 | `align` | `\begin{aligned}` | 多行对齐 |
 | `sum` / `\sum` | `\sum` / 带上下限 | 求和 |
 | `int` / `dint` / `oint` | 积分 | 不定 / 定 / 环路 |
-| `par` / `ddt` | 偏导 / 时间导数 | 微积分 |
+| `par` / `par2` / `paXy` / `ddt` | 偏导 / 二阶偏导 / 偏导之比 / 时间导数 | 微积分 |
+| `2rt` | `\sqrt[2]{ }` | n 次根 |
+| `iden3` | 3×3 单位矩阵 | 线性代数，`iden2`…`iden10` |
 | `->` `>=` `!=` `===` | `\to` `\geq` `\neq` `\equiv` | 常用关系 |
 | `and` `inn` `set` `RR` | `\cap` `\in` `\{ \}` `\mathbb{R}` | 集合与常用符号 |
 | `lr(` `lr[` `lr{` | 自动大小括号 | 括号 |
 | `bra` `ket` `brk` | 量子力学 bra-ket | 已内置宏 |
 | `kbt` `dag` `msun` | 物理常用写法 | 物理 |
+| `pu` / `cee` | `\pu{…}` / `\ce{…}` | 物理量 / 化学式（内置 mhchem） |
 
 另有：`text`、`bf`、`cal`、`bb`、`hat`、`bar`、`ddot`、`tilde`、`vec`、`pmod`、`tayl`、`iso`、`he4`、`avg`、`norm`、`ceil`、`floor`、`mod`、`lra` 等。完整的定义在 `app/web/snippets.js`，可以自行增删（`trigger` / `rep` / `category` / `desc`）。
+
+**Visual snippets**：选中一段公式再按键即可包裹——
+
+| 选中后按 | 结果 |
+|---|---|
+| `S` | `\sqrt{…}` |
+| `U` / `O` | `\underbrace{…}` / `\overbrace{…}` |
+| `B` | `\underset{…}{…}` |
+| `C` / `K` | `\cancel{…}` / `\cancelto{…}{…}` |
+| `(` / `[` / `{` | 包裹成对应括号 |
+
+这套 snippet 已按 Obsidian LaTeX-suite 的默认配置（含 `x3`→`x_{3}`、`\alpha3`→`\alpha_{3}`、`x_{3}4`→`x_{34}`、`\alpha sr`→`\alpha^{2}` 等自动规则）补齐；`mk`/`dm` 这类文本模式 snippet 不适用于本应用的纯公式输入。
 
 ### 关于字体
 

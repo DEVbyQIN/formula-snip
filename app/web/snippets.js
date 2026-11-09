@@ -13,6 +13,19 @@
     'pi', 'Pi', 'rho', 'tau', 'phi', 'Phi', 'chi', 'psi', 'Psi'
   ];
 
+  // Same variable sets as obsidian-latex-suite's default_snippet_variables.js
+  const GREEK_PATTERN = '(?:alpha|beta|gamma|Gamma|delta|Delta|epsilon|varepsilon|zeta|eta|theta|vartheta|Theta|iota|kappa|lambda|Lambda|mu|nu|xi|omicron|pi|rho|varrho|sigma|Sigma|tau|upsilon|Upsilon|phi|varphi|Phi|chi|psi|omega|Omega)';
+  const SYMBOL_PATTERN = '(?:parallel|perp|partial|nabla|hbar|ell|infty|oplus|ominus|otimes|oslash|square|star|dagger|vee|wedge|subseteq|subset|supseteq|supset|emptyset|exists|nexists|forall|implies|impliedby|iff|setminus|neg|lor|land|bigcup|bigcap|cdot|times|simeq|approx)';
+  const MORE_SYMBOLS_PATTERN = '(?:leq|geq|neq|gg|ll|equiv|sim|propto|rightarrow|leftarrow|Rightarrow|Leftarrow|leftrightarrow|to|top|mapsto|cap|cup|in|sum|prod|exp|ln|log|det|dots|vdots|ddots|pm|mp|int|iint|iiint|oint)';
+  const ACCENT_PATTERN = '(?:dot|ddot|hat|bar|tilde|vec|underline|overline|mathbf|mathcal|mathrm|mathbb)';
+  const SNIPPET_VARS = {
+    GREEK: GREEK_PATTERN,
+    SYMBOL: SYMBOL_PATTERN,
+    MORE_SYMBOLS: MORE_SYMBOLS_PATTERN,
+    ACCENT: ACCENT_PATTERN
+  };
+  const GREEK_NAMES = new Set(GREEK_LONG);
+
   const SNIPPETS = [];
 
   function add(trigger, rep, cat, desc, opts) {
@@ -28,6 +41,7 @@
   addRe('(matrix|cases|array)', '\\begin{[[0]]}\n$0\n\\end{[[0]]}', '环境', 'matrix / cases / array', { priority: 12 });
   addRe('align', '\\begin{aligned}\n$0\n\\end{aligned}', '环境', '多行对齐 aligned', { priority: 8 });
   add('text', '\\text{$0}$1', '环境', '公式里的文字', { priority: 1 });
+  add('"', '\\text{$0}$1', '环境', '引号包裹成 \\text', { priority: -1 });
 
   /* ------------------------------------------------------------ 希腊字母 */
   add('@a', '\\alpha', '希腊字母', 'α');
@@ -62,6 +76,16 @@
   add('ome', '\\omega', '希腊字母', 'ω');
   add('Ome', '\\Omega', '希腊字母', 'Ω');
   addRe('([^\\\\])(' + GREEK_LONG.join('|') + ')', '[[0]]\\[[1]]', '希腊字母', '希腊字母名自动加反斜杠', { priority: 5 });
+  addRe('([^\\\\])(${SYMBOL})', '[[0]]\\[[1]]', '希腊字母', '符号名自动加反斜杠', { priority: -2 });
+  addRe('\\\\(${GREEK}|${SYMBOL}) sr', '\\[[0]]^{2}', '希腊字母', '符号平方', { priority: 4 });
+  addRe('\\\\(${GREEK}|${SYMBOL}) cb', '\\[[0]]^{3}', '希腊字母', '符号立方', { priority: 4 });
+  addRe('\\\\(${GREEK}|${SYMBOL}) rd', '\\[[0]]^{$0}$1', '希腊字母', '符号上标', { priority: 4 });
+  addRe('\\\\(${GREEK}) hat', '\\hat{\\[[0]]}', '希腊字母', '希腊字母加帽', { priority: 4 });
+  addRe('\\\\(${GREEK}) dot', '\\dot{\\[[0]]}', '希腊字母', '希腊字母加点', { priority: 4 });
+  addRe('\\\\(${GREEK}) bar', '\\bar{\\[[0]]}', '希腊字母', '希腊字母加横线', { priority: 4 });
+  addRe('\\\\(${GREEK}) vec', '\\vec{\\[[0]]}', '希腊字母', '希腊字母加向量', { priority: 4 });
+  addRe('\\\\(${GREEK}) tilde', '\\tilde{\\[[0]]}', '希腊字母', '希腊字母加波浪', { priority: 4 });
+  addRe('\\\\(${GREEK}) und', '\\underline{\\[[0]]}', '希腊字母', '希腊字母加下划线', { priority: 4 });
 
   /* ------------------------------------------------------------ 常用运算 */
   add('sr', '^{2}', '常用运算', '平方');
@@ -70,7 +94,9 @@
   add('_', '_{$0}$1', '常用运算', '下标');
   add('sts', '_\\text{$0}', '常用运算', '文字下标');
   add('sq', '\\sqrt{ $0 }$1', '常用运算', '根号');
+  addRe('(\\d)rt', '\\sqrt[[[0]]]{ $0 }$1', '常用运算', 'n 次根', { priority: 3 });
   add('//', '\\frac{$0}{$1}$2', '常用运算', '分式');
+  addRe('\\\\bee', 'e^{ $0 }$1', '常用运算', 'e 的指数');
   add('invs', '^{-1}', '常用运算', '逆');
   add('conj', '^{*}', '常用运算', '共轭');
   add('Re', '\\mathrm{Re}', '常用运算', '实部');
@@ -97,7 +123,15 @@
   add('yii', 'y_{i}', '常用运算', 'y_i');
   add('yjj', 'y_{j}', '常用运算', 'y_j');
   addRe('([A-Za-z])(hat|bar|dot|ddot|tilde|und|vec)', '\\[[1]]{[[0]]}$0', '常用运算', '字母直接加帽/线', { priority: 30 });
-  addRe('([A-Za-z])([0-9])', '[[0]]_{[[1]]}$0', '常用运算', '变量后的数字变下标', { priority: -5 });
+  addRe('(\\\\?)([A-Za-z]+)(\\d)', function (match) {
+    var isMacro = match[1] === '\\';
+    var digit = match[3];
+    if (!isMacro) return match[2] + '_{' + digit + '}';
+    if (GREEK_NAMES.has(match[2])) return '\\' + match[2] + '_{' + digit + '}';
+    return '\\' + match[2] + ' ' + digit;
+  }, '常用运算', '变量/希腊字母后的数字变下标；宏后补空格', { priority: -1 });
+  addRe('(\\\\${GREEK}|[A-Za-z])_\\{(\\d+)\\}(\\d)', '[[0]]_{[[1]][[2]]}', '常用运算', '合并连续下标数字', { priority: -2 });
+  addRe('\\\\(${ACCENT})\\{(\\\\${GREEK}|[A-Za-z])\\}(?:_\\{(\\d+)\\})?(\\d)', '\\[[0]]{[[1]]}_{[[2]][[3]]}', '常用运算', '带帽变量的数字变下标', { priority: -3 });
 
   /* ---------------------------------------------------------------- 微积分 */
   add('sum', '\\sum', '微积分', '求和');
@@ -106,6 +140,7 @@
   add('\\prod', '\\prod_{${0:i}=${1:1}}^{${2:N}} $3', '微积分', '连乘上下限', { priority: 2 });
   add('lim', '\\lim_{ ${0:n} \\to ${1:\\infty} } $2', '微积分', '极限');
   add('int', '\\int $0 \\, d${1:x} $2', '微积分', '不定积分');
+  add('\\int', '\\int $0 \\, d${1:x} $2', '微积分', '不定积分（输入 \\int）', { priority: 4 });
   add('dint', '\\int_{${0:0}}^{${1:1}} $2 \\, d${3:x} $4', '微积分', '定积分');
   add('oint', '\\oint', '微积分', '环路积分');
   add('iint', '\\iint', '微积分', '二重积分');
@@ -114,9 +149,22 @@
   add('infi', '\\int_{-\\infty}^{\\infty} $0 \\, d${1:x} $2', '微积分', '全区间积分');
   add('par', '\\frac{ \\partial ${0:y} }{ \\partial ${1:x} } $2', '微积分', '偏导');
   add('parn', '\\frac{ \\partial^{${0:n}} ${1:y} }{ \\partial ${2:x}^{${0:n}} } $2', '微积分', 'n 阶偏导');
+  addRe('par([0-9])', '\\frac{ \\partial^{[[0]]} ${0:y} }{ \\partial ${1:x}^{[[0]]} } $2', '微积分', '指定阶偏导', { priority: 2 });
+  addRe('pa([A-Za-z])([A-Za-z])', '\\frac{ \\partial [[0]] }{ \\partial [[1]] } ', '微积分', '偏导/偏导', { priority: 2 });
   add('ddt', '\\frac{d}{dt} ', '微积分', '对时间求导');
   addRe('([^\\\\])int', '[[0]]\\int', '微积分', 'int 前自动补反斜杠', { priority: -1 });
   add('tayl', '${0:f}(${1:x} + ${2:h}) = ${0:f}(${1:x}) + ${0:f}\'(${1:x})${2:h} + ${0:f}\'\'(${1:x}) \\frac{${2:h}^{2}}{2!} + \\dots$3', '微积分', '泰勒展开');
+  addRe('iden(\\d)', function (match) {
+    var n = Number(match[1]);
+    if (!(n >= 1 && n <= 10)) return false;
+    var rows = [];
+    for (var r = 0; r < n; r++) {
+      var cols = [];
+      for (var c = 0; c < n; c++) cols.push(r === c ? '1' : '0');
+      rows.push(cols.join(' & '));
+    }
+    return '\\begin{pmatrix}\n' + rows.join(' \\\\\n') + '\n\\end{pmatrix}';
+  }, '线性代数', 'n 阶单位矩阵', { priority: 2 });
 
   /* ------------------------------------------------------------ 符号关系 */
   add('ooo', '\\infty', '符号关系', '∞');
@@ -127,7 +175,7 @@
   add('xx', '\\times', '符号关系', '×');
   add('**', '\\cdot', '符号关系', '·');
   add('para', '\\parallel', '符号关系', '∥');
-  add('deg', '^{\\circ}', '符号关系', '度');
+  add('deg', '\\degree', '符号关系', '度');
   add('===', '\\equiv', '符号关系', '≡');
   add('!=', '\\neq', '符号关系', '≠');
   add('>=', '\\geq', '符号关系', '≥');
@@ -176,6 +224,7 @@
   add('log', '\\log ', '三角函数', 'log');
   add('exp', '\\exp ', '三角函数', 'exp');
   addRe('([^\\\\])(arcsin|arccos|arctan|sinh|cosh|tanh|sin|cos|tan|csc|sec|cot|exp|log|ln|det)', '[[0]]\\[[1]]', '三角函数', '函数名自动补反斜杠', { priority: 10 });
+  addRe('(arccsc|arcsec|arccot)', '\\operatorname{[[0]]}$0', '三角函数', '反三角（MathJax 非内置）', { priority: 12 });
 
   /* ---------------------------------------------------------------- 括号 */
   add('lr(', '\\left( $0 \\right) $1', '括号', '自动大小圆括号');
@@ -203,8 +252,23 @@
   add('he4', '{}^{4}_{2}He ', '物理', '⁴He');
   add('he3', '{}^{3}_{2}He ', '物理', '³He');
   add('iso', '{}^{${0:4}}_{${1:2}}${2:He}', '物理', '同位素');
+  add('pu', '\\pu{ $0 }', '物理', '物理量单位（mhchem）');
+  add('cee', '\\ce{ $0 }', '物理', '化学式（mhchem）');
 
-  const CATEGORIES = ['环境', '希腊字母', '常用运算', '微积分', '符号关系', '三角函数', '括号', '物理'];
+  // 选中文本后按键即可包裹（LaTeX Suite 的 visual snippets）
+  const VISUALS = {
+    U: { rep: '\\underbrace{ ${VISUAL} }_{ $0 }', desc: '下括号' },
+    O: { rep: '\\overbrace{ ${VISUAL} }^{ $0 }', desc: '上括号' },
+    B: { rep: '\\underset{ $0 }{ ${VISUAL} }', desc: '下方标注' },
+    C: { rep: '\\cancel{ ${VISUAL} }', desc: '斜线删除' },
+    K: { rep: '\\cancelto{ $0 }{ ${VISUAL} }', desc: '斜线到值' },
+    S: { rep: '\\sqrt{ ${VISUAL} }', desc: '根号' },
+    '(': { rep: '(${VISUAL})', desc: '圆括号' },
+    '[': { rep: '[${VISUAL}]', desc: '方括号' },
+    '{': { rep: '{${VISUAL}}', desc: '花括号' }
+  };
+
+  const CATEGORIES = ['环境', '希腊字母', '常用运算', '微积分', '线性代数', '符号关系', '三角函数', '括号', '物理'];
 
   /* ------------------------------------------------------------- 引擎 */
 
@@ -235,13 +299,20 @@
     return true;
   }
 
+  function compilePattern(pattern) {
+    return String(pattern).replace(/\$\{(GREEK|SYMBOL|MORE_SYMBOLS|ACCENT)\}/g, function (_, name) {
+      return SNIPPET_VARS[name];
+    });
+  }
+
   function matchSnippet(before) {
     let best = null;
     for (const s of SNIPPETS) {
       let matched = null;
       let captures = [];
       if (s.regex) {
-        const re = new RegExp(s.trigger + '$');
+        if (!s._re) s._re = new RegExp(compilePattern(s.trigger) + '$');
+        const re = s._re;
         const m = re.exec(before);
         if (m) {
           matched = m[0];
@@ -259,10 +330,17 @@
     return best;
   }
 
-  function buildExpansion(rep, captures) {
-    const src = rep.replace(/\[\[(\d+)\]\]/g, function (_, i) {
-      return captures[Number(i)] != null ? captures[Number(i)] : '';
-    });
+  function buildExpansion(rep, captures, matched) {
+    let src;
+    if (typeof rep === 'function') {
+      const result = rep([matched == null ? '' : matched].concat(captures || []));
+      if (result === false || result == null) return null;
+      src = String(result);
+    } else {
+      src = String(rep).replace(/\[\[(\d+)\]\]/g, function (_, i) {
+        return captures[Number(i)] != null ? captures[Number(i)] : '';
+      });
+    }
     const out = [];
     const stops = [];
     let pos = 0;
@@ -287,7 +365,8 @@
     const before = text.slice(0, caret);
     const match = matchSnippet(before);
     if (!match) return null;
-    const built = buildExpansion(match.snippet.rep, match.captures);
+    const built = buildExpansion(match.snippet.rep, match.captures, match.matched);
+    if (!built) return null;
     const start = caret - match.matched.length;
     const stops = built.stops.map(function (s) {
       return { idx: s.idx, start: start + s.start, end: start + s.end };
@@ -302,10 +381,34 @@
     };
   }
 
+  function buildVisual(key, selected) {
+    const visual = VISUALS[key];
+    if (!visual) return null;
+    const token = '\u0001';
+    const rep = visual.rep.split('${VISUAL}').join(token);
+    const built = buildExpansion(rep, [], '');
+    if (!built) return null;
+    let text = built.text;
+    const stops = built.stops.map(function (s) { return { idx: s.idx, start: s.start, end: s.end }; });
+    let searchFrom = 0;
+    let at;
+    while ((at = text.indexOf(token, searchFrom)) >= 0) {
+      text = text.slice(0, at) + selected + text.slice(at + 1);
+      stops.forEach(function (s) {
+        if (s.start > at) s.start += selected.length - 1;
+        if (s.end > at) s.end += selected.length - 1;
+      });
+      searchFrom = at + selected.length;
+    }
+    return { text: text, stops: stops, visual: visual };
+  }
+
   window.FormulaSnip = {
     snippets: SNIPPETS,
     categories: CATEGORIES,
+    visuals: VISUALS,
     expandAt: expandAt,
+    buildVisual: buildVisual,
     matchSnippet: matchSnippet,
     buildExpansion: buildExpansion,
     insideText: insideText

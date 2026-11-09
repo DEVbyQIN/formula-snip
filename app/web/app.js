@@ -495,6 +495,31 @@
     onTextChanged();
   }
 
+  function applyVisual(key) {
+    var ta = els.tex;
+    var start = ta.selectionStart;
+    var end = ta.selectionEnd;
+    if (start === end) return false;
+    var built = window.FormulaSnip.buildVisual(key, state.tex.slice(start, end));
+    if (!built) return false;
+    var text = state.tex.slice(0, start) + built.text + state.tex.slice(end);
+    var stops = sortStops((built.stops || []).map(function (st) {
+      return { idx: st.idx, start: start + st.start, end: start + st.end };
+    }));
+    applyText(text);
+    if (stops.length) {
+      session = { stops: stops, focus: 0 };
+      focusStop(0);
+    } else {
+      session = null;
+      setCaret(start + built.text.length);
+    }
+    scheduleRender();
+    saveStateSoon();
+    log('info', 'visual snippet：' + key + ' → ' + shorten(built.text, 28));
+    return true;
+  }
+
   function updateHint() {
     var hint = els.snippetHint;
     if (!hint) return;
@@ -870,7 +895,7 @@
     var q = snippetQuery.trim().toLowerCase();
     var byCat = {};
     window.FormulaSnip.snippets.forEach(function (s) {
-      if (s.regex) return;
+      if (s.regex || typeof s.rep !== 'string') return;
       if (q && s.trigger.toLowerCase().indexOf(q) < 0 && s.desc.toLowerCase().indexOf(q) < 0 && s.cat.indexOf(q) < 0) return;
       (byCat[s.cat] = byCat[s.cat] || []).push(s);
     });
@@ -1018,6 +1043,9 @@
       if (e.isComposing) return;
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'e') { e.preventDefault(); doExport(); return; }
       if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'c') { e.preventDefault(); doCopy(); return; }
+      if (!e.metaKey && !e.ctrlKey && !e.altKey && e.key.length === 1 && els.tex.selectionStart !== els.tex.selectionEnd) {
+        if (applyVisual(e.key)) { e.preventDefault(); return; }
+      }
       if (e.key === 'Escape') { session = null; updateHint(); return; }
       if (e.key === 'Tab') {
         if (session) {
@@ -1107,7 +1135,14 @@
         ['x3', 'x_{3}'],
         ['>=', '\\geq'],
         ['dint', '\\int_{0}^{1}'],
-        ['\\sum', '\\sum_{i=1}^{N}']
+        ['\\sum', '\\sum_{i=1}^{N}'],
+        ['2rt', '\\sqrt[2]{'],
+        ['par2', '\\frac{ \\partial^{2}'],
+        ['iden3', '\\begin{pmatrix}'],
+        ['x_{3}4', 'x_{34}'],
+        ['\\alpha sr', '\\alpha^{2}'],
+        ['arccsc', '\\operatorname{arccsc}'],
+        [' partial', ' \\partial']
       ];
       var snippetOk = true, snippetDetail = '';
       cases.forEach(function (c) {
@@ -1129,6 +1164,12 @@
       // 占位符 Tab 跳转
       els.tex.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab', bubbles: true, cancelable: true }));
       add('Tab 占位符跳转', els.tex.selectionStart > 0, 'caret=' + els.tex.selectionStart + '/' + els.tex.value.length);
+      // 选中文本 + visual snippet
+      els.tex.value = 'a+b';
+      state.tex = 'a+b';
+      els.tex.setSelectionRange(0, 3);
+      els.tex.dispatchEvent(new KeyboardEvent('keydown', { key: 'S', bubbles: true, cancelable: true }));
+      add('选中文本按 S 包裹', els.tex.value.indexOf('\\sqrt{ a+b }') === 0, JSON.stringify(els.tex.value));
       state.tex = sample;
       els.tex.value = sample;
       els.tex.setSelectionRange(0, 0);
@@ -1150,6 +1191,9 @@
         var png2 = await svgToPng(r2.svg, { fontPx: 30, scale: 2, color: '#1d4ed8' });
         add('CJK 图片非空', png2.opaque > 100 && png2.width > 40, 'opaque=' + png2.opaque + ' ' + png2.width + '×' + png2.height);
       }
+
+      var rx = await renderTex('\\ce{H2O} \\; \\cancel{x} + \\degree');
+      add('mhchem / cancel 扩展', rx.ok && !!rx.viewBox, rx.ok ? rx.viewBox : rx.error);
 
       var oldFont = state.font;
       state.font = 'mathjax-stix2';

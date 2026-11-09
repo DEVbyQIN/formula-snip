@@ -12,10 +12,14 @@
   window.__FONT__ = font;
 
   window.MathJax = {
-    loader: { paths: { fonts: './vendor/fonts' } },
+    loader: {
+      paths: { fonts: './vendor/fonts', mathjax: './vendor/mathjax' },
+      load: ['[tex]/mhchem', '[tex]/cancel']
+    },
     output: { font: font },
     tex: {
       inlineMath: [['$', '$'], ['\\(', '\\)']],
+      packages: { '[+]': ['mhchem', 'cancel'] },
       macros: {
         bra: ['\\langle #1|', 1],
         ket: ['|#1\\rangle', 1],
